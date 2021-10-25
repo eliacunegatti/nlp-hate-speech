@@ -8,7 +8,8 @@ from urllib.parse import urlparse
 from nltk.corpus import stopwords
 import numpy as np
 from nltk.stem import WordNetLemmatizer
-
+import glob
+import os
 from nltk.corpus import wordnet
 lemmatizer = WordNetLemmatizer()
 
@@ -44,63 +45,63 @@ def remove_stopwords(text):
 
 
 
+my_list = os.listdir('twitter_data')
+folder_path = "twitter_data/"
+for item in my_list:
+    if item == ".DS_Store":
+        my_list.remove(item)
+for filename in my_list:
+    folder_name = folder_path + filename +"/"
+    try:
+        os.mkdir("clean_twitter_data/"+filename+'/')
+    except FileExistsError as exc:
+        print(exc)    
+
+    print(folder_name)
+    for hast in glob.glob(os.path.join(folder_name,'*.csv')):
+        print(hast)
+        try:
+            df = pd.read_csv(hast, sep=',',header=None) 
+            hast = os.path.basename(hast)
+            hast = hast.replace(".csv","")
+
+            print(df.columns)
+            df[0] = df[0].apply(str)
+            df[0]  = df[0].str.lower()
+            df = df.drop_duplicates(subset=[0])
+
+            df[0] = df[0].apply(lambda x: re.split('https:\/\/.*', str(x))[0])
+            df[0] = df[0].apply(lambda x: re.split('http:\/\/.*', str(x))[0])
+            df[0] = df[0].apply(lambda x: re.split('www:\/\/.*', str(x))[0])
+            df[0] = df[0].apply(lambda x: re.split('html:\/\/.*', str(x))[0])
+            df[0] = df[0].str.replace(r'\S*twitter.com\S*', '')
 
 
 
 
-##lunghezza tweet
 
-#read file --> define the position of the file the position below IS ONLY AN EXAMPLE!!
-df = pd.read_csv('#gay.csv', sep=',') 
-
-df['tweet'] = df['tweet'].apply(str)
+            df[0] = df[0].apply(remove_stopwords)
+            df[0] = df[0].apply(remove_emoji)
 
 
-df['tweet']  = df['tweet'].str.lower()
-
-df = df.drop_duplicates(subset=['tweet'])
-
-df['tweet'] = df['tweet'].apply(lambda x: re.split('https:\/\/.*', str(x))[0])
-df['tweet'] = df['tweet'].apply(lambda x: re.split('http:\/\/.*', str(x))[0])
-df['tweet'] = df['tweet'].apply(lambda x: re.split('www:\/\/.*', str(x))[0])
-df['tweet'] = df['tweet'].apply(lambda x: re.split('html:\/\/.*', str(x))[0])
-df['tweet'] = df['tweet'].str.replace(r'\S*twitter.com\S*', '')
+            df[0] = df[0].str.replace('[^a-zA-Z0-9]', r' ')
 
 
 
+            df[0]= df[0].str.replace(r'\s+', ' ')
 
 
-df["tweet"] = df["tweet"].apply(remove_stopwords)
-df['tweet'] = df['tweet'].apply(remove_emoji)
+            df = df[df[0] !='']
 
 
-df['tweet'] = df['tweet'].str.replace('[^a-zA-Z0-9]', r' ')
+            tweet = []
+            for i in range(len(df)):
+                sentence = df[0].iloc[i]
+                tweet.append([lemmatizer.lemmatize(w, get_wordnet_pos(w)) for w in nltk.word_tokenize(sentence)])
 
-avg_word_len = []
-for i in range(len(df)):
-    t = nltk.word_tokenize(df["tweet"].iloc[i])
-    word_len = []
-    for item in t:
-        word_len.append(len(item))
-    avg_word_len.append(np.mean(word_len))
-print(avg_word_len)
-df["avg_word_len"] = avg_word_len
+            df[0] = tweet
 
 
-
-df['tweet']= df['tweet'].str.replace(r'\s+', ' ')
-
-
-df = df[df.tweet !='']
-
-
-tweet = []
-for i in range(len(df)):
-    sentence = df["tweet"].iloc[i]
-    tweet.append([lemmatizer.lemmatize(w, get_wordnet_pos(w)) for w in nltk.word_tokenize(sentence)])
-
-df["tweet"] = tweet
-
-
-df.to_csv('gay.csv',index=False, sep=',', encoding='utf-8', columns=['tweet'])
-
+            df.to_csv("clean_twitter_data/"+filename+'/'+hast+'.csv',index=False, sep=',', encoding='utf-8')
+        except:
+            pass

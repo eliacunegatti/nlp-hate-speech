@@ -1,7 +1,7 @@
 import os
 import tweepy as tw
 import pandas as pd
-
+import timeit
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -35,32 +35,40 @@ def search_tweet(q):
     
     return df
 
-print("ok")
 
-hast = ["#immigration","#gay",'#gun','#war','#humanrights']
+tags = pd.read_csv("tags.csv",sep=",")
 
-import timeit
+
+list_hashtags = []
+list_hashtags = list(tags.columns)
+list_hashtags = list_hashtags[::-1]
 start = timeit.default_timer()
 diff = 0
-
 while (diff < 1000000):
-    for item in hast:
-        tweet = []
-        ttt = search_tweet(item)
-        print("ttt")
-        for twit in ttt.text:
-            twit = twit.replace("\n","")
-            tweet.append(twit)
-        
-        print(len(tweet))
-        name = item + '.csv'
-        with open(name, 'a') as filehandle:
-            for listitem in tweet:
-                listitem = listitem.replace(",","")
-                if 'RT' not in listitem:
-                    if item in listitem:
-                        filehandle.write('%s \n' % (listitem))  
-        
+    for category in list_hashtags:
+        try:
+            os.mkdir("twitter_data/"+category+'/')
+        except FileExistsError as exc:
+            print(exc)    
+        hast = tags[category]
+        print(hast)        
+        for item in hast:
+            tweet = []
+            ttt = search_tweet(item)
+            print("ttt")
+            for twit in ttt.text:
+                twit = twit.replace("\n","")
+                tweet.append(twit)
+            
+            print(len(tweet))
+            name = item + '.csv'
+            with open(("twitter_data/"+category+'/'+name), 'a') as filehandle:
+                for listitem in tweet:
+                    listitem = listitem.replace(",","")
+                    if 'RT' not in listitem:
+                        if item in listitem:
+                            filehandle.write('%s \n' % (listitem))  
+            
     stop = timeit.default_timer()
     diff = stop - start
     import time
