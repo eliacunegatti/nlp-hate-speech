@@ -43,6 +43,8 @@ tags = pd.read_csv("tags.csv",sep=",")
 list_hashtags = []
 list_hashtags = list(tags.columns)
 random.shuffle(list_hashtags)
+print(len(list_hashtags))
+print(list_hashtags)
 start = timeit.default_timer()
 diff = 0
 while (diff < 10000000):
