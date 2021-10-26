@@ -58,61 +58,73 @@ bert = AutoModel.from_pretrained('bert-base-uncased')
 
 # Load the BERT tokenizer
 tokenizer = BertTokenizerFast.from_pretrained('bert-base-uncased',return_dict=False)
-folder_path = "clean_twitter_data"
-for filename in glob.glob(os.path.join(folder_path,'*/')):
-    print(filename)
-    for hast in glob.glob(os.path.join(filename,'*.csv')):
-        print(hast)
-        df = pd.read_csv(hast, sep=",",header=None)
-        df[0] = df[0].str.replace('[^\w\s]','')
+folder_path = "clean_twitter_data/"
+my_list = os.listdir('clean_twitter_data')
 
-        corpus = []
-        for i in range(len(df)):
-            text = df[0].iloc[i]
-            corpus.append(text)
+for item in my_list:
+    if item == ".DS_Store":
+        my_list.remove(item)
+for filename in my_list:
+    folder_name = folder_path + filename +"/"
+    print(folder_name)
+    for hast in glob.glob(os.path.join(folder_name,'*.csv')):
+        try:
+          df = pd.read_csv(hast, sep=",",header=None)
+          df[0] = df[0].str.replace('[^\w\s]','')
 
-        # tokenize and encode sequences in the test set
-        tokens_test = tokenizer.batch_encode_plus(
-            corpus,
-            max_length = 25,
-            pad_to_max_length=True,
-            truncation=True
-        )
+          corpus = []
+          for i in range(len(df)):
+              text = df[0].iloc[i]
+              corpus.append(text)
 
-
-
-        test_seq = torch.tensor(tokens_test['input_ids'])
-        test_mask = torch.tensor(tokens_test['attention_mask'])
-
-
-
-
-        device = torch.device("cpu")
-
-        print(device)
-
-        path = 'model.pt'
-        model = BERT_Arch(bert)
-
-        # push the model to GPU
-        model = model.to(device)
-
-        model = torch.load(path,map_location=torch.device('cpu'))
+          # tokenize and encode sequences in the test set
+          tokens_test = tokenizer.batch_encode_plus(
+              corpus,
+              max_length = 25,
+              pad_to_max_length=True,
+              truncation=True
+          )
 
 
-        with torch.no_grad():
-          preds = model(test_seq.to(device), test_mask.to(device))
-          preds = preds.detach().cpu().numpy()
 
-        preds = np.argmax(preds, axis = 1)
+          test_seq = torch.tensor(tokens_test['input_ids'])
+          test_mask = torch.tensor(tokens_test['attention_mask'])
 
-        print(preds)
-        c =0
 
-        for item in preds:
-          if item == 1:
-              c+=1
-        print(c)
-        print(c/len(df))
+
+
+          device = torch.device("cpu")
+
+          print(device)
+
+          path = 'model.pt'
+          model = BERT_Arch(bert)
+
+          # push the model to GPU
+          model = model.to(device)
+
+          model = torch.load(path,map_location=torch.device('cpu'))
+
+
+          with torch.no_grad():
+            preds = model(test_seq.to(device), test_mask.to(device))
+            preds = preds.detach().cpu().numpy()
+
+          preds = np.argmax(preds, axis = 1)
+
+          print(preds)
+          c =0
+
+          for item in preds:
+            if item == 1:
+                c+=1
+          tot = float(c / len(df))
+          name = os.path.basename(hast)
+          name = name.replace(".csv","")
+
+          with open(("results/"+filename+'.csv'), 'a') as filehandle:
+            filehandle.write('%s,%d,%f,%d \n' % (name,c,tot,len(preds)))  
+        except:
+          pass
       
 

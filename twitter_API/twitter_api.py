@@ -1,4 +1,5 @@
 import os
+import random
 import tweepy as tw
 import pandas as pd
 import timeit
@@ -17,7 +18,7 @@ api = tw.API(auth, wait_on_rate_limit=True)
 
 
 def search_tweet(q):
-    tweet_objects = api.search_tweets(q = q, result_type="mixed", count=100)
+    tweet_objects = api.search_tweets(q = q, result_type="mixed", count=100,lang="en")
     
     text = [tweet.text for tweet in tweet_objects]
     dates = [tweet.created_at for tweet in tweet_objects]
@@ -41,10 +42,10 @@ tags = pd.read_csv("tags.csv",sep=",")
 
 list_hashtags = []
 list_hashtags = list(tags.columns)
-list_hashtags = list_hashtags[::-1]
+random.shuffle(list_hashtags)
 start = timeit.default_timer()
 diff = 0
-while (diff < 1000000):
+while (diff < 10000000):
     for category in list_hashtags:
         try:
             os.mkdir("twitter_data/"+category+'/')
@@ -71,9 +72,6 @@ while (diff < 1000000):
             
     stop = timeit.default_timer()
     diff = stop - start
-    import time
     print(diff)
-    
-    time.sleep(10)
-        
+            
 
