@@ -21,7 +21,7 @@ for item in my_list:
 
 
 for i in range(len(my_list)):
-    my_list[i] = my_list[i].replace(".csv","")
+    my_list[i] = my_list[i].replace(".csv","").lower()
 
 
 
@@ -46,7 +46,7 @@ plt.barh(y_pos, h)
 
 # Create names on the x-axis
 plt.yticks(y_pos, bars)
-
+plt.title("Hate Speech by category",size=16)
 # Show graphic
 plt.show()
 import collections
@@ -58,17 +58,17 @@ plt.figure(figsize=(4,6))
 h = []
 b = []
 for key, value in all_items.items():
-    b.append(key)
+    b.append(key.lower())
     h.append(value)
 
 
+
+
+h = [float(i)/sum(h) for i in h]
 b = b[:20]
 h = h[:20]
 b = b[::-1]
 h = h[::-1]
-
-h = [float(i)/sum(h) for i in h]
-
 y_pos = np.arange(len(b))
 
 # Create bars
@@ -76,7 +76,7 @@ plt.barh(y_pos, h, color="red")
 
 # Create names on the x-axis
 plt.yticks(y_pos, b)
-
+plt.title("Top Hate Speech #",size=16)
 # Show graphic
 plt.show()
 
@@ -99,6 +99,8 @@ for item in my_list:
     for key, value in cat_items.items():
         b.append(key)
         h.append(value)
+    h = [float(i)/sum(h) for i in h]
+
     b = b[:10]
     h = h[:10]
 
@@ -123,5 +125,7 @@ for item in my_list:
     plt.yticks(y_pos, b1)
 
     # Show graphic
+    item = item.replace(".csv","")
+    item = item.upper()
     plt.title(item)
     plt.show()
